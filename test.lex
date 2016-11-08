@@ -1,15 +1,20 @@
 %{
     #include <stdio.h>
     #include <string>
-    int rulecnt = 0;
     #include "test.tab.hpp"
+    int rulebracket=0;
+    int classbracket=0;
+    bool inclass=false;
 %}
 %option yylineno
 %option noyywrap
 
 %x  COMMENT
+%x  MULTICOMMENT
 %x  RULEARG
 %x  RULECODE
+%x  CLASSDEF
+%x  CLASSCODE
 
 Letter      [A-Za-z]
 Digit       [0-9]
@@ -21,11 +26,42 @@ Space       [ \r\n\t]
 WHENEVER    "whenever"
 
 %%
-{WHENEVER}"("     {
+{WHENEVER}      {
                     BEGIN RULEARG;
-                    rulecnt++;
-                    //todo:return rulecnt?
+                    return KW_WHENEVER;
                 }
+"class"{Space}* {
+                    BEGIN CLASSDEF;
+                    return KW_CLASS;
+                }
+<CLASSDEF>{Variant} {
+                    yylval.Variant.Name = new std::string(yytext);
+                    //printf("VARIANT | %s\n", yytext);
+                    return VARIANT;
+                    }
+
+<CLASSDEF>"{" {
+    classbracket=1;
+    BEGIN CLASSCODE;
+    inclass=true;
+    return yytext[0];
+}
+<CLASSDEF>. {return yytext[0];}    
+<CLASSCODE>"{"  {
+    classbracket++;
+    return yytext[0];
+}      
+<CLASSCODE>"}"  {
+    classbracket--;
+    if(classbracket==0)
+        BEGIN INITIAL;
+    return yytext[0];
+}
+<CLASSCODE>{WHENEVER}
+{
+    BEGIN RULEARG;
+    return KW_WHENEVER;
+}
 
 "//"            {
                     //printf("Comment|\n");
@@ -41,18 +77,49 @@ WHENEVER    "whenever"
 <COMMENT>\\\n   {   /* comment continues */ }
 <COMMENT>.      {   /* just ignore in comment */ }
 <COMMENT>\n     {
-                    BEGIN INITIAL; 
+                    if(!inclass)
+                            BEGIN INITIAL;
+                        else
+                            BEGIN CLASSCODE;
                 }
+"/*"            {
+                    BEGIN MULTICOMMENT;
+                }
+<MULTICOMMENT>. {   /* just ignore in comment */ }
+<MULTICOMMENT>"*/" {
+                        if(!inclass)
+                            BEGIN INITIAL;
+                        else
+                            BEGIN CLASSCODE;
+                    }               
 
 <RULEARG>{Variant}       {
                     yylval.Variant.Name = new std::string(yytext);
                     //printf("VARIANT | %s\n", yytext);
                     return VARIANT;
                 }
-<RULEARG>,      {/*ignore*/}
 
-<RULEARG>")"{Space}*"{"     {BEGIN RULECODE;}
-<RULECODE>"}"   {BEGIN INITIAL;}
+
+<RULEARG>"{"     {
+    BEGIN RULECODE;
+    rulebracket=1;
+    return yytext[0];
+}
+<RULEARG>.      {return yytext[0];}
+<RULECODE>"{" {
+    rulebracket++;
+    return yytext[0];
+}
+<RULECODE>"}"       {
+                    rulebracket--;
+                    if(rulebracket==0){
+                        if(!inclass)
+                            BEGIN INITIAL;
+                        else
+                            BEGIN CLASSCODE;
+                    }
+                    return yytext[0];
+                }
 <RULECODE>.     {return yytext[0];}
 
 %%

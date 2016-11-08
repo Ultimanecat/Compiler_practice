@@ -31,6 +31,8 @@
 %token <Variant> VARIANT
 %token KW_VAR
 %token KW_PRINT
+%token KW_WHENEVER
+%token KW_CLASS
 
 %type  <Number>  expr
 

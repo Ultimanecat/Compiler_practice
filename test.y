@@ -24,11 +24,19 @@
     struct {
         std::string* Name;
     } Variant;
+    struct {
+        std::string* Name;
+    } Classname;
+    struct {
+        std::string* Typename;
+    } Type;
 }
 
 %token <String>  STRING
 %token <Number>  NUMBER
 %token <Variant> VARIANT
+%token <Classname> CLASSNAME
+%token <Type> TYPE
 %token KW_VAR
 %token KW_PRINT
 %token KW_WHENEVER

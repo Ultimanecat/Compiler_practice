@@ -126,6 +126,7 @@ int main(int argc, char* argv[])
         case 'd':
         dict=fopen(optarg,"wb");
         break;
+
     }
     yyparse(); 
     if(dict)fclose(dict);

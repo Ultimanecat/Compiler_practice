@@ -1,13 +1,13 @@
 build: test
 
-test: test.yy.cpp test.tab.cpp
-	g++ -o test test.yy.cpp test.tab.cpp
-test.tab.cpp: test.y
-	yacc -o test.tab.cpp -d test.y
-test.yy.cpp: test.lex
-	lex -o test.yy.cpp test.lex
+test: test.yy.c test.tab.c
+	g++ -o test test.yy.c test.tab.c
+test.tab.c: test.y
+	yacc -o test.tab.c -d test.y
+test.yy.c: test.lex
+	lex -o test.yy.c test.lex
 
 clean:
-	rm *.cpp *.hpp
+	rm *.c *.h
 rebuild: clean build
 

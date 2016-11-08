@@ -1,7 +1,9 @@
 %{
     #include <iostream>
+    #include <stdio.h>
     #include <string>
     #include <map>
+    #include <unistd.h>
     std::map<std::string, int> _vars;
 
     void yyerror(const char* s);
@@ -9,6 +11,7 @@
     // extern from lex
     extern int yylex(void);
     extern "C" int yylineno;
+    FILE* dict=NULL;//output rule-var table to this file  
 %}
 
 %union {
@@ -99,8 +102,22 @@ void yyerror(const char* s)
     std::cerr << s << std::endl;
 }
 
-int main() 
+int main(int argc, char* argv[]) 
 { 
+    int ch;
+    opterr = 0;
+    //while((ch = getopt(argc,argv,”o:d:”))!= -1)
+    while((ch=getopt(argc,argv,"o:d:"))!=-1)
+    switch(ch)
+    {
+        case 'o':
+        freopen(optarg,"w",stdout);
+        break;
+        case 'd':
+        dict=fopen(optarg,"wb");
+        break;
+    }
     yyparse(); 
+    if(dict)fclose(dict);
     return 0; 
 }

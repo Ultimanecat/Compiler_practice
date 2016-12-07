@@ -17,6 +17,7 @@ Number      {Digit}+
 Variant         {Letter}({Letter}|{Digit}|_)*
 Space       [ \r\n\t]
 WHENEVER    whenever
+new         new
 
 %%
 \"[^"]*\"       {
@@ -39,6 +40,9 @@ WHENEVER    whenever
 {WHENEVER}      {
                     printf(" WHENEVER | %s\n", yytext);
                     return KW_WHENEVER;
+                }
+{NEW}           {
+                    return KW_NEW;
                 }
 {Variant}       {
                     yylval.Variant.Name = new std::string(yytext);

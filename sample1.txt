@@ -1,0 +1,179 @@
+%% declarations
+class player
+{
+	int hp;
+	String name;
+	List<minion> minions;
+	List<card> handcards;
+	List<card> deck;
+	player opponent;
+	void takedmg(int dmg)
+	{
+		hp-=dmg;
+	}
+	void draw()
+	{
+		System.out.println(name + "draw a card");
+		card tmp = deck.get(0);
+		deck.remove(0);
+		handcards.add(tmp);
+	}
+	whenever(hp<=0)
+	{
+		System.out.println("player" + opponent.name + "wins!");
+		started = false;
+	}
+	player(String _name)
+	{
+		hp = 30;
+		name = _name;
+	}
+
+}
+class minion
+{
+	int hp;
+	int atk;
+	player owner;
+	void takedmg(int dmg)
+	{
+		hp-=dmg;
+	}
+	void attack(Object target)
+	{
+		if(target instanceof player)
+		{
+			(player) target.takedmg(atk);
+		}
+		if(target instanceof minion)
+		{
+			(minion) target.takedmg(atk);
+			takedmg((minion)target.atk);
+		}
+	}
+}
+class boombot extends minion
+{
+	whenever(hp<=0)
+	{
+		Random r;
+		int enemycount = owner.opponent.minions.size() + 1;
+		int ran = r.nextInt(enemycount);
+		int randmg = r.nextInt(4) + 1;
+		if(ran==0)
+		{
+			owner.opponent.takedmg(randmg);
+		}
+		else
+		{
+			owner.opponent.minions.get(ran-1).takedmg(randmg);
+		}
+	}
+	boombot()
+	{
+		hp=1;
+		atk=1;
+	}
+}
+class card
+{
+	int type;
+	player owner;
+}
+class card_boombot extends card
+{
+	void use()
+	{
+		owner.minions.add(new boombot());
+	}
+}
+player player1 = new player("Alice");
+player player2 = new player("Bob");
+player thisturn = null;
+boolean started;
+String input;
+Scanner sc = new Scanner(System.in);
+
+%%rules
+whenever(input)
+{
+	if(input.equals("atk"))
+	{
+		int tmp;
+		card atker = null; 
+		System.out.println("choose a minion");
+		while(true)
+		{
+			tmp = sc.nextInt();
+			if(tmp<1||tmp>thisturn.minions.size())
+			{
+				System.out.println("Invalid minion");
+				continue;
+			}
+			else
+			{
+				atker = thisturn.minions.get(tmp-1);
+				break;
+			}
+		}
+		System.out.println("choose a target");
+		while(true)
+		{
+			tmp = sc.nextInt();
+			if(tmp<0||tmp>thisturn.opponent.minions.size())
+			{
+				System.out.println("Invalid minion");
+				continue;
+			}
+			else
+			{
+				if(tmp==0)
+					atker.attack(thisturn.opponent);
+				else atker.attack(thisturn.opponent.minions.get(tmp-1));
+				break;
+			}
+		}
+	}
+	if(input.equals("use"))
+	{
+		int tmp; 
+		while(true)
+		{
+			tmp = sc.nextInt();
+			if(tmp<1||tmp>thisturn.handcards.size())
+			{
+				System.out.println("Invalid card");
+				continue;
+			}
+			else
+			{
+				thisturn.handcards.get(tmp-1).use();
+				break;
+			}
+		}
+
+	}
+	if(input.equals("end"))
+	{
+		thisturn = thisturn.opponent;
+	}
+}
+
+%%subroutines
+for(int i=0;i<30;i++)
+{
+	player1.deck.add(new card_boombot());
+	player2.deck.add(new card_boombot());
+}
+for(int i=0;i<4;i++)
+{
+	player1.draw();
+	player2.draw();
+}
+started = true;
+
+thisturn = player1;
+while(started)
+{
+	input = sc.next();
+}

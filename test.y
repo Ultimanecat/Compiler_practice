@@ -38,11 +38,13 @@
 %token <Classname> CLASSNAME
 %token <Type> TYPE
 %token KW_VAR
+%token KW_NEW
 %token KW_PRINT
 %token KW_WHENEVER
 %token KW_CLASS
 
 %type  <Number>  expr
+%type  <Myvar> dotvar
 
 %right '=' OP_ADDEQ OP_SUBEQ OP_MULEQ OP_DIVEQ OP_MODEQ
 %right '?' ':'
@@ -58,13 +60,21 @@
 
 %%
 program     : statement ';' program
+            | classdef program
             | /* empty */
             ;
 
 statement   : KW_VAR VARIANT '=' expr       { _vars[*$2.Name] = $4.Value; }
+            | dotvar '=' KW_NEW TYPE '(' ')'
+            | dotvar '=' dotvar
             | printcall
             | expr
             ;
+
+dotvar      : VARIANT '.' dotvar
+            | VARIANT
+            ;
+
 
 expr        : '-' expr                      %prec OP_UMINUS         { $$.Value = - $2.Value; }
             | VARIANT OP_ADDADD             %prec OP_SUF_ADDADD     { $$.Value = _vars[*$1.Name]++; }

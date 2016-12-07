@@ -1,0 +1,160 @@
+%%declarations
+import java.math.BigDecimal;
+class XOR
+{
+	boolean input1;
+	boolean input2;
+	boolean output;
+	whenever(input1,input2)
+	{
+		output = input1^input2;
+	}
+}
+class AND
+{
+	boolean input1;
+	boolean input2;
+	boolean output;
+	whenever(input1,input2)
+	{
+		output = input1&&input2;
+	}
+}
+class OR
+{
+	boolean input1;
+	boolean input2;
+	boolean output;
+	whenever(input1,input2)
+	{
+		output = input1||input2;
+	}
+}
+class FullAdder
+{
+	boolean A,B,Cin,Cout,S;
+	XOR x1,x2;
+	AND a1,a2;
+	OR o1;
+	whenever(A)
+	{
+		x1.input1 = A;
+		a1.input1 = A;
+	}
+	whenever(B)
+	{
+		x1.input2 = B;
+		a1.input2 = B;
+	}
+	whenever(Cin)
+	{
+		x2.input1 = Cin;
+		a2.input1 = Cin;
+	}
+	whenever(x1.output)
+	{
+		x2.input2 = x1.output;
+		a2.input2 = x1.output;
+	}
+	whenever(x2.output)
+	{
+		S = x2.output;
+	}
+	whenever(a1.output)
+	{
+		o1.input1 = a1.output;
+	}
+	whenever(a2.output)
+	{
+		o1.input2 = a2.output;
+	}
+	whenever(o1.output)
+	{
+		Cout = o1.output;
+	}
+
+}
+class Adder
+{
+	boolean overflow;
+	int bits;
+	List<Boolean> A = new ArrayList<Boolean>();
+	List<Boolean> B = new ArrayList<Boolean>();
+	List<Boolean> S = new ArrayList<Boolean>();
+	List<FullAdder> f = new ArrayList<FullAdder>();
+	void input()
+	{
+		Scanner sc = new Scanner(System.in);
+		String s = sc.next();
+		for(int i=bits-1;i>=0;i--)
+		{
+			if(s.charAt(i)=='1')A.set(i,new Boolean(true));
+			else A.set(i,new Boolean(false));
+		}
+		s = sc.next();
+		for(int i=bits-1;i>=0;i--)
+		{
+			if(s.charAt(i)=='1')B.set(i,new Boolean(true));
+			else B.set(i,new Boolean(false));
+		}
+	}
+	void output()
+	{
+		String s = "";
+		for(int i=bits-1;i>=0;i--)
+		{
+			if(S.get(i))s = s + "1";
+			else s = s + "0";
+		}
+		System.out.println(s);
+	}
+	whenever(bits)
+	{
+		A.clear();
+		B.clear();
+		S.clear();
+		f.clear();
+		for(int i=0;i<bits;i++)
+		{
+			A.add(new Boolean());
+			B.add(new Boolean());
+			S.add(new Boolean());
+			f.add(new FullAdder());
+		}
+	}
+	whenever(A)
+	{
+		for(int i=0;i<bits;i++)
+		{
+			f.get(i).input1 = A.get(i);
+		}
+	}
+	whenever(B)
+	{
+		for(int i=0;i<bits;i++)
+		{
+			f.get(i).input2 = B.get(i);
+		}
+	}
+	whenever(f)
+	{
+		S.get(0) = f.get(0).S;
+		overflow = f.get(bits-1).Cout;
+		for(int i=1;i<bits;i++)
+		{
+			f.get(i).Cin = f.get(i-1).Cout;
+			S.get(i) = f.get(i).S;
+		}
+	}
+}
+%%rules
+
+%%subroutines
+Adder adder = new Adder();
+Scanner sc = new Scanner(System.in);
+adder.bits = sc.nextInt();
+while(true)
+{
+	Adder.input();
+	Adder.output();
+}
